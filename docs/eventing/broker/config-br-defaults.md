@@ -11,38 +11,41 @@ Knative Eventing provides a `config-br-defaults` ConfigMap, which provides defau
 If you are using the `config-br-defaults` ConfigMap default configuration, the example below will create a Broker called `default` in the default namespace, and uses `MTChannelBasedBroker` as the
 implementation.
 
-```shell
-kubectl create -f - <<EOF
-apiVersion: eventing.knative.dev/v1
-kind: Broker
-metadata:
-  name: default
-  namespace: default
-EOF
-```
+## Configuring a broker
 
-The following example shows a Broker where the configuration is specified in a ConfigMap `config-br-default-channel`:
+1. Create a broker using the default settings by running:
 
-```yaml
-apiVersion: eventing.knative.dev/v1
-kind: Broker
-metadata:
-  annotations:
-    eventing.knative.dev/broker.class: MTChannelBasedBroker
-  name: default
-spec:
-  # Configuration specific to this broker.
-  config:
-    apiVersion: v1
-    kind: ConfigMap
-    name: config-br-default-channel
-    namespace: knative-eventing
-```
+    ```shell
+    kubectl create -f - \<\<EOF
+    apiVersion: eventing.knative.dev/v1
+    kind: Broker
+    metadata:
+      name: default
+      namespace: default
+    EOF
+    ```
 
-## Format of the file
+    The following example shows a Broker where the configuration is specified in a ConfigMap `config-br-default-channel`:
 
-Let's look at the `ConfigMap` that comes out of the box when you install a
-release (v0.16.0 in this example):
+    ```yaml
+    apiVersion: eventing.knative.dev/v1
+    kind: Broker
+    metadata:
+      annotations:
+        eventing.knative.dev/broker.class: MTChannelBasedBroker
+      name: default
+    spec:
+      # Configuration specific to this broker.
+      config:
+        apiVersion: v1
+        kind: ConfigMap
+        name: config-br-default-channel
+        namespace: knative-eventing
+    ```
+
+## Changing the default BrokerClass
+
+Below is an example of `ConfigMap` as it appears when you install a release (v0.16.0 in this example):
 
 ```yaml
 apiVersion: v1
@@ -63,9 +66,8 @@ data:
       namespace: knative-eventing
 ```
 
-This means that any Broker created without a specific BrokerClass annotation
-will use `MTChannelBasedBroker`, and any Broker without a `spec.config`
-will have `spec.config` like so:
+The above example shows that any broker created without a specific BrokerClass annotation uses
+`MTChannelBasedBroker`, and any broker without a `spec.config` has `spec.config`, like so:
 
 ```
 spec:
@@ -76,14 +78,17 @@ spec:
     namespace: knative-eventing
 ```
 
-## Changing the default BrokerClass
+You can configure Knative Eventing so that when you create a broker, it uses a different type of
+broker than the default Knative channel-based broker.
+To configure a different broker type, or *class*, you must modify the
+`eventing.knative.dev/broker.class` annotation and `spec.config` for the broker object.
 
 ### Changing the default BrokerClass for the cluster
 
 If you have installed a different Broker, or multiple, you can change the
 default Broker used at the cluster level and by namespace. If you for example
-have installed MT Channel Based Broker as well as `YourBroker` and would prefer
-that by default any Broker created uses `YourBroker` you could modify the
+have installed `MTChannelBasedBroker` as well as `YourBroker` and would prefer
+that by default any broker created uses `YourBroker` you could modify the
 `ConfigMap` to look like this:
 
 ```yaml
@@ -108,7 +113,7 @@ when you create a Broker.
 
 ### Changing the default BrokerClass for namespaces
 
-As mentioned, you can also control the defaulting behaviour for some set of
+As mentioned, you can also control the defaulting behavior for some set of
 namespaces. So, if for example, you wanted to use `YourBroker` for all the other
 Brokers created, but wanted to use `MTChannelBasedBroker` for the following
 namespaces: `namespace1` and `namespace2`. You would modify the config map like
